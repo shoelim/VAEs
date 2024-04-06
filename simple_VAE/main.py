@@ -4,7 +4,7 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from models import Encoder, Decoder
 from train import train_vae
-from evaluate import visualize_training_data, visualize_generated_samples, evaluate_model, plot_training_error, generate_samples
+from evaluate import visualize_training_data, visualize_generated_samples, visualize_reconstructed_samples, evaluate_model, plot_training_error, generate_samples, reconstruct_samples
 from data import prepare_balanced_mixture_gaussians_data, prepare_imbalanced_mixture_gaussians_data, prepare_swissroll_data
 from torchvision import datasets, transforms
 import numpy as np
@@ -37,6 +37,7 @@ def main(args):
     decoder = Decoder(args.latent_dim, args.hidden_dim, args.input_dim).to(device)
 
     optimizer = optim.Adam(list(encoder.parameters()) + list(decoder.parameters()), lr=args.learning_rate)
+    #optimizer = optim.Adam(list(decoder.parameters()), lr=args.learning_rate)
 
     print("Training VAE...")
     training_losses = train_vae(train_loader, encoder, decoder, optimizer, args.num_epochs, device, args.dataset, args.batch_size)
@@ -48,6 +49,11 @@ def main(args):
         plot_training_error(training_losses)
 
     visualize_training_data(X_train, save_path=args.save_path)
+
+    print("Reconstructing samples...")
+    test_data = X_train
+    reconstructed_samples = reconstruct_samples(encoder, decoder, args.latent_dim, device, test_data)
+    visualize_reconstructed_samples(reconstructed_samples, save_path=args.save_path)
     
     print("Generating samples...")
     generated_samples = generate_samples(decoder, args.latent_dim, device, num_samples=20000)

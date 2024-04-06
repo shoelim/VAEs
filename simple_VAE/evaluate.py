@@ -23,6 +23,15 @@ def generate_samples(decoder, latent_dim, device, num_samples=10000):
         generated_samples = decoder(latent_samples).cpu().detach()
     return generated_samples
 
+def reconstruct_samples(encoder, decoder, latent_dim, device, test_data):
+    with torch.no_grad():
+        test_data = test_data.to(device)
+        mu, logvar = encoder(test_data)
+        z = mu + torch.randn_like(mu).to(device) * torch.exp(0.5 * logvar) 
+        recon_samples = decoder(z).cpu().detach()
+    return recon_samples
+
+
 def visualize_training_data(X_train, save_path=None):
     fig = plt.figure()  # Create a new figure instance
     plt.scatter(X_train[:, 0], X_train[:, 1], c='blue', marker='o', label='Training Data')
@@ -43,6 +52,17 @@ def visualize_generated_samples(generated_samples, save_path=None):
     plt.ylabel('Feature 2')
     if save_path:
         plt.savefig(save_path + "_generated_samples.png")
+    else:
+        plt.show()
+
+def visualize_reconstructed_samples(reconstructed_samples, save_path=None):
+    fig = plt.figure()  # Create a new figure instance
+    plt.scatter(reconstructed_samples[:, 0], reconstructed_samples[:, 1], c='orange', marker='+')
+    plt.title('Reconstructed Samples')
+    plt.xlabel('Feature 1')
+    plt.ylabel('Feature 2')
+    if save_path:
+        plt.savefig(save_path + "_reconstructed_samples.png")
     else:
         plt.show()
 
